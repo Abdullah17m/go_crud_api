@@ -1,0 +1,20 @@
+# Ignore Go build and mod cache
+/bin/
+/pkg/
+*.exe
+*.out
+*.test
+
+# Editor/IDE specific
+.vscode/
+.idea/
+
+# Dependency management
+go.sum
+
+# Environment variables
+*.env
+
+# OS-generated files
+.DS_Store
+Thumbs.db
