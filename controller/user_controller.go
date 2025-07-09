@@ -2,24 +2,62 @@ package controller
 
 import (
 	"crud-api/manager"
+	"crud-api/mongoDatabase"
 	"crud-api/request"
 	"crud-api/response"
 	"strconv"
-	"crud-api/models"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 var validate = validator.New()
 
+// func CreateUser(c echo.Context) error {
+// 	var user models.User
+// 	var req request.CreateUserRequest
+// 	if err := c.Bind(&user); err != nil {
+// 		return response.BadRequest(c, "Invalid request body")
+// 	}
+
+// 	if err := validate.Struct(req); err != nil {
+// 		return response.ValidationError(c, err)
+// 	}
+// 	exists, err := mongoDatabase.IsEmailExists(user.Email)
+// 	if err != nil {
+// 		return response.InternalError(c, "Failed to check email")
+// 	}
+// 	if exists {
+// 		return response.BadRequest(c, "User with this email already exists")
+// 	}
+
+// 	createdUser, err := manager.CreateUser(request.CreateUserRequest{
+// 		Name:  user.Name,
+// 		Email: user.Email,
+// 	})
+	
+// 	if err != nil {
+// 		return response.InternalError(c, "Failed to create user")
+// 	}
+
+// 	return response.Success(c, createdUser)
+// }
+
 func CreateUser(c echo.Context) error {
-	var user models.User
-	if err := c.Bind(&user); err != nil {
+	var req request.CreateUserRequest
+
+	// Bind request body into req (not models.User)
+	if err := c.Bind(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")
 	}
 
-	
-	exists, err := manager.IsEmailExists(user.Email)
+	// Validate the bound input
+	if err := validate.Struct(req); err != nil {
+		return response.ValidationError(c, err)
+	}
+
+	// Check if email already exists
+	exists, err := mongoDatabase.IsEmailExists(req.Email)
 	if err != nil {
 		return response.InternalError(c, "Failed to check email")
 	}
@@ -27,17 +65,15 @@ func CreateUser(c echo.Context) error {
 		return response.BadRequest(c, "User with this email already exists")
 	}
 
-	createdUser, err := manager.CreateUser(request.CreateUserRequest{
-		Name:  user.Name,
-		Email: user.Email,
-	})
-	
+	// Call manager to create user
+	createdUser, err := manager.CreateUser(req)
 	if err != nil {
 		return response.InternalError(c, "Failed to create user")
 	}
 
 	return response.Success(c, createdUser)
 }
+
 
 func GetUser(c echo.Context) error {
 	id := c.Param("id")
